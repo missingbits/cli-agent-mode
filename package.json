@@ -1,0 +1,61 @@
+{
+  "name": "cli-agent-mode",
+  "version": "0.1.0",
+  "description": "Make any commander.js CLI agent-friendly: --json output envelopes, machine-readable errors with suggestions, a `describe` command that emits the CLI schema, and stable exit codes.",
+  "keywords": [
+    "cli",
+    "commander",
+    "ai-agent",
+    "llm",
+    "agent",
+    "json-output",
+    "machine-readable",
+    "claude-code",
+    "cursor",
+    "codex",
+    "mcp",
+    "exit-codes",
+    "structured-errors"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsdown src/index.ts --dts --format esm",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "peerDependencies": {
+    "commander": ">=12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "commander": "^14.0.3",
+    "tsdown": "^0.21.10",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/missingbits/cli-agent-mode.git"
+  },
+  "homepage": "https://github.com/missingbits/cli-agent-mode#readme",
+  "bugs": {
+    "url": "https://github.com/missingbits/cli-agent-mode/issues"
+  },
+  "author": "Gordey Levchenko (https://github.com/lgordey)"
+}
