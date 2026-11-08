@@ -1,6 +1,6 @@
 {
   "name": "cli-agent-mode",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Make any commander.js CLI agent-friendly: --json output envelopes, machine-readable errors with suggestions, a `describe` command that emits the CLI schema, and stable exit codes.",
   "keywords": [
     "cli",
