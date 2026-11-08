@@ -7,7 +7,19 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "declaration": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "cli-agent-mode": [
+        "./src/index.ts"
+      ]
+    }
   },
-  "include": ["src", "test", "examples", "types"]
+  "include": [
+    "src",
+    "test",
+    "examples",
+    "types"
+  ]
 }
