@@ -11,7 +11,7 @@ Two lines turn your CLI into one that agents can drive reliably:
 - **Stable exit codes** — `0` ok, `1` runtime error, `2` usage error.
 - **Clean stdout** — stray `console.log` inside actions is redirected to stderr in JSON mode.
 
-Zero dependencies. ~4 kB gzipped. Works with commander 12+.
+Zero dependencies. ~4 kB gzipped. ESM and CommonJS, Node 20+, commander 12+.
 
 ```bash
 npm i cli-agent-mode
@@ -108,6 +108,7 @@ If you are already on oclif, you have `--json`. If you are on commander — the 
 
 - Subcommands must be created with `program.command()` (or added via `addCommand()` *before* their `.action()` is set) so return values can be captured.
 - `--json` is reserved: it is removed from argv before parsing (except after `--`).
+- In JSON mode `console.log/info/debug` are redirected to stderr, but direct `process.stdout.write` calls inside actions are not — return data instead.
 - Typed `@commander-js/extra-typings` is not supported yet.
 
 ## License

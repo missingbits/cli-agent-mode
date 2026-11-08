@@ -1,3 +1,4 @@
+/// <reference path="../types/commander-augment.d.ts" />
 import { Command, CommanderError, type HelpConfiguration, type OutputConfiguration } from 'commander';
 import { format } from 'node:util';
 import { detectAgent } from './detect.js';
@@ -38,12 +39,6 @@ interface State {
 
 const states = new WeakMap<Command, State>();
 
-declare module 'commander' {
-  interface Command {
-    /** With cli-agent-mode the handler may return a JSON-serializable result. */
-    action(fn: (this: this, ...args: any[]) => unknown): this;
-  }
-}
 
 const rootOf = (cmd: Command): Command => {
   let c = cmd;
