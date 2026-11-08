@@ -16,7 +16,7 @@ Two lines turn your CLI into one that agents can drive reliably:
 - **Stable exit codes** — `0` ok, `1` runtime error, `2` usage error.
 - **Clean stdout** — stray `console.log` inside actions is redirected to stderr in JSON mode.
 
-Zero dependencies. ~4 kB gzipped. ESM and CommonJS, Node 20+, commander 12+.
+Zero dependencies. ~4 kB gzipped. ESM and CommonJS, Node 20+, commander 12–15.
 
 ```bash
 npm i cli-agent-mode
