@@ -1,7 +1,8 @@
 name: Release
 
-# Publishes to npm when a version tag (v1.2.3) is pushed.
-# Uses npm trusted publishing (OIDC): no NPM_TOKEN secret, provenance is attached automatically.
+# Stages a release on npm when a version tag (v1.2.3) is pushed.
+# Trusted publishing (OIDC): no NPM_TOKEN secret, provenance attached automatically.
+# Staged publishing: the version goes live only after a maintainer runs `npm stage approve` with 2FA.
 on:
   push:
     tags: ['v*']
@@ -32,4 +33,6 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-      - run: npm publish --access public
+      - name: Use npm >= 11.15 (staged publishing)
+        run: npm install -g npm@^11.15.0 && npm --version
+      - run: npm stage publish --access public
