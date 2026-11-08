@@ -1,5 +1,9 @@
 # cli-agent-mode
 
+[![npm](https://img.shields.io/npm/v/cli-agent-mode)](https://www.npmjs.com/package/cli-agent-mode)
+[![CI](https://github.com/missingbits/cli-agent-mode/actions/workflows/ci.yml/badge.svg)](https://github.com/missingbits/cli-agent-mode/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/cli-agent-mode)](LICENSE)
+
 **Make any [commander.js](https://github.com/tj/commander.js) CLI usable by AI agents** (Claude Code, Cursor, Codex, Gemini CLI, Copilot) **without breaking it for humans.**
 
 Two lines turn your CLI into one that agents can drive reliably:
