@@ -90,13 +90,13 @@ export function agentMode<T extends Command>(program: T, options: AgentModeOptio
   states.set(program, state);
   walk(program, patch);
 
-  program.option('--json', 'output a single JSON envelope on stdout (auto-enabled for AI agents)');
+  program.option('--json', 'print one JSON envelope on stdout (auto-on for AI agents)');
 
   const name = state.options.describeCommand;
   if (name) {
     program
       .command(`${name} [command...]`)
-      .description('print the CLI schema (arguments, options, subcommands) as JSON')
+      .description('print the CLI schema as JSON')
       .action((path: string[] = []) => {
         const target = findCommand(program, path);
         if (!target) {
@@ -144,8 +144,10 @@ export async function run(program: Command, runOptions: RunOptions = {}): Promis
   const stdout = runOptions.stdout ?? process.stdout;
   const stderr = runOptions.stderr ?? process.stderr;
   const extracted = extractJsonFlag(runOptions.args ?? process.argv.slice(2));
+  const forced = env.CLI_AGENT_MODE === 'json' ? true : env.CLI_AGENT_MODE === 'human' ? false : undefined;
   const json =
-    runOptions.json ?? (extracted.json || (state.options.autoDetect && detectAgent(env) !== undefined));
+    runOptions.json ??
+    (extracted.json || (forced ?? (state.options.autoDetect && detectAgent(env) !== undefined)));
   const mode = json ? 'json' : 'human';
 
   // Route commander's own output and capture which command raised a usage error.

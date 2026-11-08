@@ -6,8 +6,9 @@ Two lines turn your CLI into one that agents can drive reliably:
 
 - **`--json` output envelope** — every command prints exactly one JSON document on stdout: `{"ok":true,"data":...}` or `{"ok":false,"error":{...}}`.
 - **Machine-readable errors** — stable `code`, a human `message`, and a `suggestion` the agent can follow literally. Commander usage errors are mapped too (`UNKNOWN_OPTION`, `MISSING_ARGUMENT`, ...).
-- **Self-description** — `mycli describe [command]` (and `--help --json`) print the full CLI schema: arguments, options, types, defaults, choices, subcommands.
-- **Auto-detects agents** — JSON turns on automatically under `AI_AGENT`, `CLAUDECODE`, `CURSOR_AGENT`, `GEMINI_CLI`, `CODEX_SANDBOX`, ...
+- **Self-description** — `mycli describe [command]` (and `--help --json`) print the full CLI schema in one call: arguments, option flags, defaults, choices, subcommands. Compact by design (falsy fields and empty lists are omitted) to save agent tokens.
+- **Auto-detects agents** — JSON turns on automatically under `AI_AGENT`, `CLAUDECODE`, `CURSOR_AGENT`, `GEMINI_CLI`, `CODEX_SANDBOX`, ... (precedence: `--json` > `CLI_AGENT_MODE` > auto-detect)
+- **Escape hatch** — `CLI_AGENT_MODE=human` forces human output even under an agent, `CLI_AGENT_MODE=json` forces JSON.
 - **Stable exit codes** — `0` ok, `1` runtime error, `2` usage error.
 - **Clean stdout** — stray `console.log` inside actions is redirected to stderr in JSON mode.
 
@@ -54,7 +55,7 @@ $ deployctl deploy --json               # exit code 2
 {"ok":false,"error":{"code":"MISSING_ARGUMENT","message":"missing required argument 'env'","suggestion":"Run \"deployctl describe deploy\" to see accepted arguments and options."}}
 
 $ deployctl describe deploy --json
-{"ok":true,"data":{"name":"deploy","path":"deployctl deploy","usage":"deployctl deploy [options] <env>","arguments":[{"name":"env","required":true,...}],"options":[{"name":"dryRun","type":"boolean",...}],"commands":[]}}
+{"ok":true,"data":{"name":"deploy","description":"Deploy an environment","usage":"deployctl deploy [options] <env>","arguments":[{"name":"env","description":"environment name","required":true}],"options":[{"flags":"--dry-run","description":"show the plan without deploying"}]}}
 ```
 
 What a human sees (same CLI, no agent detected):
@@ -92,6 +93,22 @@ Lower-level helpers: the schema generator and the agent detector.
 ### Error codes from commander
 
 `UNKNOWN_OPTION`, `UNKNOWN_COMMAND`, `MISSING_ARGUMENT`, `MISSING_OPTION_VALUE`, `MISSING_REQUIRED_OPTION`, `INVALID_ARGUMENT`, `EXCESS_ARGUMENTS`, `CONFLICTING_OPTIONS`, `MISSING_COMMAND`, `USAGE_ERROR`.
+
+## Benchmark: does it actually help an agent?
+
+Same tiny notes CLI, written twice: plain commander vs. with `cli-agent-mode`. Claude Code (headless, Claude Haiku) gets the same task: add notes, mark one done, delete a tag (the CLI refuses to delete unfinished notes without `--force`), hit a missing id, report the result. 6 runs per variant:
+
+| | plain commander | cli-agent-mode |
+|---|:-:|:-:|
+| task completed | 6/6 | 6/6 |
+| CLI calls (avg, range) | 17.3 (16–19) | **11.3 (9–12)** |
+| `--help` calls per run | 4 | **1** |
+| failed calls (avg) | 3.0 | **1.8** |
+| CLI output (avg bytes) | ~1100 | ~2000 |
+
+**−35% CLI calls with the same success rate.** The agent learns the whole CLI from one `--help` (which returns the schema of every command) instead of reading help page by page, and recovers from errors using `code` + `suggestion`. The trade-off is ~1.8× more output (≈250 tokens per task here).
+
+Reproduce: [`examples/playground/agent-bench.sh`](examples/playground/agent-bench.sh) `5 haiku` (requires Claude Code).
 
 ## Why not ...
 

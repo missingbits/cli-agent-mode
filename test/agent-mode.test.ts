@@ -58,6 +58,16 @@ describe('json mode', () => {
     expect(JSON.parse(r.out)).toEqual({ ok: true, data: 'hi there' });
   });
 
+  it('CLI_AGENT_MODE=human overrides agent detection, --json still wins', async () => {
+    expect((await exec(['hello'], { env: { CLAUDECODE: '1', CLI_AGENT_MODE: 'human' } })).mode).toBe('human');
+    expect((await exec(['hello', '--json'], { env: { CLI_AGENT_MODE: 'human' } })).mode).toBe('json');
+    expect((await exec(['hello'], { env: { CLI_AGENT_MODE: 'json' } })).mode).toBe('json');
+  });
+
+  it('ignores CURSOR_TRACE_ID (set for humans in Cursor terminal)', async () => {
+    expect((await exec(['hello'], { env: { CURSOR_TRACE_ID: 'x' } })).mode).toBe('human');
+  });
+
   it('does not treat --json after "--" as the flag', async () => {
     const r = await exec(['hello', '--', '--json']);
     expect(r.mode).toBe('human');
@@ -115,8 +125,8 @@ describe('json mode', () => {
     const r = await exec(['deploy', '--help', '--json']);
     expect(r.exitCode).toBe(0);
     const { data } = JSON.parse(r.out);
-    expect(data.path).toBe('mycli deploy');
-    expect(data.arguments[0]).toMatchObject({ name: 'env', required: true });
+    expect(data.usage).toBe('mycli deploy [options] <env>');
+    expect(data.arguments[0]).toEqual({ name: 'env', description: 'target environment', required: true });
   });
 });
 
@@ -127,10 +137,19 @@ describe('describe command', () => {
     const names = data.commands.map((c: { name: string }) => c.name);
     expect(names).toEqual(expect.arrayContaining(['deploy', 'hello', 'describe']));
     const deploy = data.commands.find((c: { name: string }) => c.name === 'deploy');
-    expect(deploy.options).toContainEqual(
-      expect.objectContaining({ name: 'region', type: 'string', default: 'eu', choices: ['eu', 'us'] }),
-    );
-    expect(deploy.options).toContainEqual(expect.objectContaining({ name: 'dryRun', type: 'boolean' }));
+    expect(deploy.options).toContainEqual({
+      flags: '--region <region>',
+      description: 'cloud region',
+      default: 'eu',
+      choices: ['eu', 'us'],
+    });
+    expect(deploy.options).toContainEqual({ flags: '--dry-run', description: 'do not change anything' });
+    // compact: no false flags, no empty lists
+    expect(JSON.stringify(data)).not.toMatch(/"required":false|"variadic":false|:\[\]/);
+    expect(data.commands.find((c: { name: string }) => c.name === 'hello')).toEqual({
+      name: 'hello',
+      usage: 'mycli hello [options]',
+    });
   });
 
   it('describes a single subcommand', async () => {
