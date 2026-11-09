@@ -16,7 +16,7 @@ Two lines turn your CLI into one that agents can drive reliably:
 - **Stable exit codes** — `0` ok, `1` runtime error, `2` usage error.
 - **Clean stdout** — stray `console.log` inside actions is redirected to stderr in JSON mode.
 
-Zero dependencies. ~4 kB gzipped. ESM and CommonJS, Node 20+, commander 12–15.
+Zero dependencies. ~4 kB gzipped. ESM and CommonJS, Node 22+ (tested on 22, 24, 26), commander 12–15 (tested in CI).
 
 ```bash
 npm i cli-agent-mode
@@ -131,6 +131,7 @@ If you are already on oclif, you have `--json`. If you are on commander — the 
 - `--json` is reserved: it is removed from argv before parsing (except after `--`).
 - In JSON mode `console.log/info/debug` are redirected to stderr, but direct `process.stdout.write` calls inside actions are not — return data instead.
 - Typed `@commander-js/extra-typings` is not supported yet.
+- commander 15 is ESM-only: TypeScript projects compiled as CommonJS need TypeScript 5.9+ to import it (a commander limitation, not specific to this package).
 
 ## License
 

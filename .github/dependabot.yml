@@ -15,6 +15,3 @@ updates:
     ignore:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
-      # 0.x minors are breaking: tsdown 0.23 drops Node 20. Remove after moving CI to Node 22+.
-      - dependency-name: tsdown
-        update-types: ['version-update:semver-minor']

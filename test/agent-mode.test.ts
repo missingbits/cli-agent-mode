@@ -130,6 +130,28 @@ describe('json mode', () => {
   });
 });
 
+describe('nested subcommands', () => {
+  it('points usage-error hints at the nested command that failed', async () => {
+    const program = agentMode(new Command('mycli'));
+    const env = program.command('env').description('manage environments');
+    env.command('add').argument('<name>').action((name: string) => ({ added: name }));
+    env.command('rm').argument('<name>').action((name: string) => ({ removed: name }));
+    let out = '';
+    const opts = { env: {}, setExitCode: false, json: true, stdout: { write: (s: string) => (out += s) }, stderr: { write: () => true } };
+
+    await run(program, { ...opts, args: ['env', 'add', 'prod', '--nope'] });
+    expect(JSON.parse(out).error.suggestion).toBe('Run "mycli describe env add" to see accepted arguments and options.');
+
+    out = '';
+    await run(program, { ...opts, args: ['env', 'add', 'x'] });
+    expect(JSON.parse(out)).toEqual({ ok: true, data: { added: 'x' } });
+
+    out = ''; // second run on the same program must not reuse the previous command
+    await run(program, { ...opts, args: ['--nope'] });
+    expect(JSON.parse(out).error.suggestion).toBe('Run "mycli describe" to see accepted arguments and options.');
+  });
+});
+
 describe('describe command', () => {
   it('emits the full schema', async () => {
     const r = await exec(['describe', '--json']);

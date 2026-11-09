@@ -35,9 +35,12 @@ export interface RunResult {
 interface State {
   options: Required<Omit<AgentModeOptions, 'formatHuman'>> & Pick<AgentModeOptions, 'formatHuman'>;
   result?: { value: unknown; command: Command };
+  /** command currently being parsed (for usage-error hints) */
+  current?: Command;
 }
 
 const states = new WeakMap<Command, State>();
+const hooked = new WeakSet<Command>();
 
 
 const rootOf = (cmd: Command): Command => {
@@ -150,13 +153,23 @@ export async function run(program: Command, runOptions: RunOptions = {}): Promis
     (extracted.json || (forced ?? (state.options.autoDetect && detectAgent(env) !== undefined)));
   const mode = json ? 'json' : 'human';
 
-  // Route commander's own output and capture which command raised a usage error.
+  // Route commander's own output. Track the command being parsed via the preSubcommand hook,
+  // so usage errors point to the right subcommand. (Commander <=13 shares one output config
+  // object between commands, so per-command closures there would all see the last command.)
   let outBuf = '';
-  let errorCommand: Command = program;
+  state.current = program;
   const restore: Array<() => void> = [];
   walk(program, (cmd) => {
-    const prevOutput = cmd.configureOutput() as OutputConfiguration;
-    const prevHelp = cmd.configureHelp() as HelpConfiguration;
+    if (!hooked.has(cmd)) {
+      hooked.add(cmd);
+      cmd.hook('preSubcommand', (_parent, sub) => {
+        const s = states.get(rootOf(sub));
+        if (s) s.current = sub;
+      });
+    }
+    // Snapshot copies: with a shared config object a reference would be mutated below.
+    const prevOutput = { ...(cmd.configureOutput() as OutputConfiguration) };
+    const prevHelp = { ...(cmd.configureHelp() as HelpConfiguration) };
     restore.push(() => {
       cmd.configureOutput(prevOutput);
       cmd.configureHelp(prevHelp);
@@ -167,7 +180,6 @@ export async function run(program: Command, runOptions: RunOptions = {}): Promis
       writeOut: (s) => (json ? (outBuf += s) : stdout.write(s)),
       writeErr: (s) => (json ? undefined : stderr.write(s)),
       outputError: (s, write) => {
-        errorCommand = cmd;
         if (!json) write(s);
       },
     });
@@ -208,7 +220,7 @@ export async function run(program: Command, runOptions: RunOptions = {}): Promis
       exitCode = EXIT.OK;
       if (!json) printed = true; // commander already printed it
     } else {
-      const { payload, code } = toPayload(err, program, errorCommand, state.options.describeCommand);
+      const { payload, code } = toPayload(err, program, state.current ?? program, state.options.describeCommand);
       envelope = { ok: false, error: payload };
       exitCode = code;
       if (!json) {
