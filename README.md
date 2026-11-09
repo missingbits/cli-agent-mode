@@ -113,19 +113,21 @@ Lower-level helpers: the schema generator and the agent detector.
 
 ## Benchmark: does it actually help an agent?
 
-Same tiny notes CLI, written twice: plain commander vs. with `cli-agent-mode`. Claude Code (headless, Claude Haiku) gets the same task: add notes, mark one done, delete a tag (the CLI refuses to delete unfinished notes without `--force`), hit a missing id, report the result. 6 runs per variant:
+Same tiny notes CLI, written twice: plain commander vs. with `cli-agent-mode`. Each agent gets the same task in headless mode: add notes, mark one done, delete a tag (the CLI refuses to delete unfinished notes without `--force`), hit a missing id, report the result. 5 runs per variant, agents from two vendors:
 
-| | plain commander | cli-agent-mode |
-|---|:-:|:-:|
-| task completed | 6/6 | 6/6 |
-| CLI calls (avg, range) | 17.3 (16–19) | **11.3 (9–12)** |
-| `--help` calls per run | 4 | **1** |
-| failed calls (avg) | 3.0 | **1.8** |
-| CLI output (avg bytes) | ~1100 | ~2000 |
+| agent + model | CLI calls: plain → agent-mode | `--help` calls per run | task completed | JSON auto-enabled |
+|---|:-:|:-:|:-:|:-:|
+| Claude Code + Haiku | 16.2 → **11.2** (−31%) | 4 → **1** | 5/5 → 5/5 | 100% of calls |
+| Claude Code + Sonnet | 13.6 → **10.0** (−26%) | 4 → **1** | 5/5 → 5/5 | 100% of calls |
+| Codex CLI + GPT (default) | 15.2 → **10.0** (−34%) | 3.8 → **1** | 4/5 → **5/5** | 100% of calls |
 
-**−35% CLI calls with the same success rate.** The agent learns the whole CLI from one `--help` (which returns the schema of every command) instead of reading help page by page, and recovers from errors using `code` + `suggestion`. The trade-off is ~1.8× more output (≈250 tokens per task here).
+- **Fewer calls, same or better results.** Agents learn the whole CLI from a single `--help` (it returns the schema of every command) instead of reading help page by page, and recover from errors using `code` + `suggestion`.
+- **More predictable.** With `cli-agent-mode`, Sonnet and Codex used exactly 10 calls in every one of their 10 runs (plain CLI: 13–17).
+- **Zero configuration.** Neither agent was told about `--json`; detection switched every call to JSON.
+- **Trade-off:** ~1.8× more CLI output (about 250 extra tokens per task here), outweighed by fewer agent round-trips.
+- **Not covered yet:** small local models (e.g. via opencode + Ollama) are still being evaluated and are not part of these numbers.
 
-Reproduce: [`examples/playground/agent-bench.sh`](examples/playground/agent-bench.sh) `5 haiku` (requires Claude Code).
+Reproduce (requires the agent CLI): `sh examples/playground/agent-bench.sh claude haiku 5` — see [examples/playground](examples/playground).
 
 ## Why not ...
 
