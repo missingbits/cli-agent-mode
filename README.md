@@ -4,14 +4,16 @@
 [![CI](https://github.com/missingbits/cli-agent-mode/actions/workflows/ci.yml/badge.svg)](https://github.com/missingbits/cli-agent-mode/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/cli-agent-mode)](LICENSE)
 
-**Make any [commander.js](https://github.com/tj/commander.js) CLI usable by AI agents** (Claude Code, Cursor, Codex, Gemini CLI, Copilot) **without breaking it for humans.**
+**Make any [commander.js](https://github.com/tj/commander.js) CLI usable by AI agents** (Claude Code, Codex, Cursor, Gemini CLI, opencode, Copilot) **without breaking it for humans.**
+
+If coding agents parse your CLI's text output, guess flags, or read `--help` page by page — this is the fix. In a benchmark, agents needed **26–34% fewer CLI calls** for the same task across Claude Haiku, Claude Sonnet and OpenAI Codex ([details](#benchmark-does-it-actually-help-an-agent)).
 
 Two lines turn your CLI into one that agents can drive reliably:
 
 - **`--json` output envelope** — every command prints exactly one JSON document on stdout: `{"ok":true,"data":...}` or `{"ok":false,"error":{...}}`.
 - **Machine-readable errors** — stable `code`, a human `message`, and a `suggestion` the agent can follow literally. Commander usage errors are mapped too (`UNKNOWN_OPTION`, `MISSING_ARGUMENT`, ...).
 - **Self-description** — `mycli describe [command]` (and `--help --json`) print the full CLI schema in one call: arguments, option flags, defaults, choices, subcommands. Compact by design (falsy fields and empty lists are omitted) to save agent tokens.
-- **Auto-detects agents** — JSON turns on automatically under `AI_AGENT`, `CLAUDECODE`, `CURSOR_AGENT`, `GEMINI_CLI`, `CODEX_SANDBOX`, ... (precedence: `--json` > `CLI_AGENT_MODE` > auto-detect)
+- **Auto-detects agents** — JSON turns on automatically under Claude Code, Codex CLI and opencode (verified), and under `AI_AGENT`, `CURSOR_AGENT`, `GEMINI_CLI`, Copilot and others (precedence: `--json` > `CLI_AGENT_MODE` > auto-detect).
 - **Escape hatch** — `CLI_AGENT_MODE=human` forces human output even under an agent, `CLI_AGENT_MODE=json` forces JSON.
 - **Stable exit codes** — `0` ok, `1` runtime error, `2` usage error.
 - **Clean stdout** — stray `console.log` inside actions is redirected to stderr in JSON mode.
@@ -68,6 +70,17 @@ What a human sees (same CLI, no agent detected):
 $ deployctl deploy mars
 error: Unknown environment "mars"
 hint: Use one of: staging, prod.
+```
+
+## Tell agents about it (AGENTS.md / CLAUDE.md)
+
+Agents are detected automatically, but one line in your project's `AGENTS.md` (or `CLAUDE.md`) saves them a discovery step:
+
+```md
+## mycli
+`mycli` is agent-friendly: start with `mycli describe --json` to get every command, argument and option.
+Every command accepts `--json` and prints one `{"ok":true,"data":...}` / `{"ok":false,"error":{"code","message","suggestion"}}` document on stdout.
+On errors, follow `error.suggestion`. Exit codes: 0 ok, 1 runtime error, 2 usage error.
 ```
 
 ## API

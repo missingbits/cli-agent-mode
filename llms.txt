@@ -1,0 +1,45 @@
+# cli-agent-mode
+
+> Make any commander.js CLI usable by AI coding agents (Claude Code, Codex, Cursor, Gemini CLI, opencode) without breaking it for humans: `--json` output envelopes, machine-readable errors with a `suggestion`, a `describe` command that returns the whole CLI schema in one call, auto-detection of agents, and stable exit codes. Zero dependencies, ESM + CJS, Node 22+, commander 12–15.
+
+Use it when: a Node.js CLI built with commander should be driven by AI agents or scripts (CI, jq) — instead of hand-rolling `if (opts.json)` in every command.
+
+## Install and wire up
+
+```ts
+import { Command } from 'commander';
+import { AgentError, agentMode, run } from 'cli-agent-mode';
+
+const program = agentMode(new Command('mycli'));      // call before defining subcommands
+program
+  .command('deploy')
+  .argument('<env>')
+  .option('--dry-run')
+  .action(async (env, opts) => {
+    if (env !== 'prod') throw new AgentError('ENV_NOT_FOUND', `Unknown env "${env}"`, { suggestion: 'Use: prod.' });
+    return { env, url: 'https://prod.example.com' };   // return data, don't print it
+  });
+await run(program);                                    // instead of program.parse()
+```
+
+## Output contract
+
+- Success: stdout = `{"ok":true,"data":<action return value>}`, exit 0.
+- Error: stdout = `{"ok":false,"error":{"code","message","suggestion?","details?"}}`, exit 1 (runtime) or 2 (usage).
+- Usage error codes: UNKNOWN_OPTION, UNKNOWN_COMMAND, MISSING_ARGUMENT, MISSING_OPTION_VALUE, MISSING_REQUIRED_OPTION, INVALID_ARGUMENT, EXCESS_ARGUMENTS, CONFLICTING_OPTIONS, MISSING_COMMAND, USAGE_ERROR; unexpected exceptions: INTERNAL_ERROR.
+- `mycli describe [command...] --json` and `mycli <cmd> --help --json` return a compact schema: `{name, description, usage, arguments[], options[{flags, description, required?, default?, choices?}], commands[]}`.
+- JSON mode turns on with `--json`, `CLI_AGENT_MODE=json`, or an auto-detected agent; `CLI_AGENT_MODE=human` forces text.
+- In JSON mode `console.log` inside actions goes to stderr; stdout holds only the envelope.
+
+## API
+
+- `agentMode(program, { autoDetect?, describeCommand?, formatHuman? })` — wraps a commander program; lets `.action()` return a result.
+- `run(program, { args?, json?, env?, stdout?, stderr?, setExitCode? })` → `{ mode, exitCode, envelope }`.
+- `new AgentError(code, message, { suggestion?, details?, exitCode? })`.
+- `describeCommand(cmd)`, `findCommand(root, path)`, `detectAgent(env?)`, `EXIT`.
+
+## Docs
+
+- [README](https://github.com/missingbits/cli-agent-mode#readme): full docs, benchmark, limitations
+- [CHANGELOG](https://github.com/missingbits/cli-agent-mode/blob/main/CHANGELOG.md)
+- [Example A/B playground](https://github.com/missingbits/cli-agent-mode/tree/main/examples/playground)

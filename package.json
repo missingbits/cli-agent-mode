@@ -1,27 +1,38 @@
 {
   "name": "cli-agent-mode",
   "version": "0.2.0",
-  "description": "Make any commander.js CLI agent-friendly: --json output envelopes, machine-readable errors with suggestions, a `describe` command that emits the CLI schema, and stable exit codes.",
+  "description": "Make commander.js CLIs agent-friendly for AI coding agents (Claude Code, Codex, Cursor, Gemini CLI, opencode): --json output envelopes, structured errors with suggestions, a describe command with the CLI schema, agent auto-detection, stable exit codes.",
   "keywords": [
     "cli",
     "commander",
-    "ai-agent",
+    "commander.js",
+    "commander-plugin",
+    "ai-agents",
+    "agent-friendly",
     "llm",
-    "agent",
+    "llm-friendly",
+    "agentic",
+    "json",
     "json-output",
+    "cli-json",
     "machine-readable",
-    "claude-code",
-    "cursor",
-    "codex",
-    "mcp",
+    "structured-errors",
     "exit-codes",
-    "structured-errors"
+    "self-describing",
+    "cli-schema",
+    "claude-code",
+    "codex",
+    "cursor",
+    "gemini-cli",
+    "opencode",
+    "developer-tools"
   ],
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "llms.txt"
   ],
   "engines": {
     "node": ">=22"
