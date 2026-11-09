@@ -1,6 +1,6 @@
 // A typical commander CLI: human text output, errors via console.error + process.exit(1).
 import { Command } from 'commander';
-import { open } from './store.js';
+import { open } from './store.ts';
 
 const { db, save } = open('before');
 const program = new Command('notes').description('Tiny notes CLI');

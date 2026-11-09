@@ -1,7 +1,7 @@
 // The same CLI with cli-agent-mode: actions return data, errors carry a code and a suggestion.
 import { Command } from 'commander';
 import { AgentError, agentMode, run } from 'cli-agent-mode';
-import { open, type Note } from './store.js';
+import { open, type Note } from './store.ts';
 
 const { db, save } = open('after');
 const line = (n: Note) => `#${n.id}  [${n.done ? 'x' : ' '}]  ${n.title}${n.tag ? `  (${n.tag})` : ''}`;

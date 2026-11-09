@@ -14,7 +14,8 @@
       "cli-agent-mode": [
         "./src/index.ts"
       ]
-    }
+    },
+    "rewriteRelativeImportExtensions": true
   },
   "include": [
     "src",
