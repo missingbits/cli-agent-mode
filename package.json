@@ -1,6 +1,6 @@
 {
   "name": "cli-agent-mode",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Make commander.js CLIs agent-friendly for AI coding agents (Claude Code, Codex, Cursor, Gemini CLI, opencode): --json output envelopes, structured errors with suggestions, a describe command with the CLI schema, agent auto-detection, stable exit codes.",
   "keywords": [
     "cli",
